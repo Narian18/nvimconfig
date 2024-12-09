@@ -1,5 +1,5 @@
 -- TS and JS LSP configuration
-require'lspconfig'.tsserver.setup{
+require'lspconfig'.tl_ls.setup{
   on_attach = function(client, bufnr)
     local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
     local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
@@ -21,8 +21,24 @@ require'lspconfig'.omnisharp.setup{
 require'lspconfig'.clangd.setup{}
 
 -- Python
+local function get_python_path(workspace)
+  -- Find and return the Python path for the virtual environment
+  local venv_path_1 = workspace .. '/.venv/bin/python'
+  local venv_path_2 = workspace .. '/venv/bin/python'
+  if vim.fn.executable(venv_path_1) == 1 then
+    return venv_path_1
+  elseif vim.fn.executable(venv_path_2) == 1 then
+      return venv_path_2
+  else
+    return vim.fn.exepath('python3') -- Fallback to system Python
+  end
+end
+
 local nvim_lsp = require('lspconfig')
 nvim_lsp.pyright.setup{
+    before_init = function(_, config)
+        config.settings.python.pythonPath = get_python_path(vim.fn.getcwd())
+    end,
     on_attach = function(client, bufnr)
         require('cmp').setup.buffer { enabled = true }
         local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
@@ -34,6 +50,37 @@ nvim_lsp.pyright.setup{
             analysis = {
                 typeCheckingMode = "basic"
             }
+        }
+    }
+}
+
+-- Go LSP
+require'lspconfig'.gopls.setup{
+    on_attach = function(client, bufnr)
+        vim.api.nvim_buf_set_keymap(bufnr, 'n', '<A-CR>', '', {
+            noremap = true,
+            silent = true, 
+            callback = function()
+                vim.lsp.buf.code_action({
+                    context = { only =  { "source.organizeImports" } },
+                    apply = true
+                })
+            end,
+        })
+
+        vim.api.nvim_buf_set_keymap(bufnr, 'n', '<C-A-L>', '', {
+            noremap = true,
+            silent = true, 
+            callback = function()
+                vim.lsp.buf.format({
+                    async = true
+                })
+            end,
+        })
+    end,
+    settings = {
+        gopls = {
+            staticcheck = true,
         }
     }
 }

@@ -22,6 +22,7 @@ require('packer').startup(function(use)
     use 'hrsh7th/cmp-nvim-lua' -- Neovim Lua API completions
     use 'folke/tokyonight.nvim'
     use 'nvim-treesitter/playground'
+    use 'theprimeagen/harpoon'
     use ({
         'nvim-telescope/telescope.nvim', tag = '0.1.6',
         requires = { {'nvim-lua/plenary.nvim'} }
